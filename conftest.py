@@ -1,13 +1,23 @@
 import pytest
-from data.courier_data import generate_courier
-from utils.api_client import create_courier, delete_courier, login_courier
+import allure
+from utils.api_client import create_order, accept_order, finish_order
+
 
 @pytest.fixture
-def new_courier():
-    courier = generate_courier()
-    create_resp = create_courier(courier)
-    assert create_resp.status_code == 201
-    login_resp = login_courier({"login": courier["login"], "password": courier["password"]})
-    courier_id = login_resp.json()["id"]
-    yield courier, courier_id
-    delete_courier(courier_id)
+def created_order():
+    order_data = {
+        "firstName": "Тест",
+        "lastName": "Тестов",
+        "address": "ул. Тестовая, 1",
+        "metroStation": 204,  # ID согласно документации
+        "phone": "+79991112233",
+        "rentTime": 3,
+        "deliveryDate": "2025-08-01",
+        "comment": "Тестовый заказ",
+        "color": ["BLACK"]
+    }
+
+    response = create_order(order_data)
+    yield {"order_id": response.json()["track"]}  # track -> order_id в других эндпоинтах
+
+    # Можно добавить отмену заказа при необходимости
